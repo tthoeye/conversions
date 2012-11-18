@@ -4,9 +4,9 @@
  */ 
 package csv2json;
 
-import csv2json.mapping.POIMapper;
 import csv2json.io.CSVReader;
 import csv2json.io.JSONWriter;
+import csv2json.mapping.POIMapper;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
