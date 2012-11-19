@@ -5,6 +5,7 @@
 package csv2json.io;
 
 import csv2json.exceptions.CSVColumnCountException;
+import csv2json.io.RecordReader;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;

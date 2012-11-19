@@ -15,10 +15,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- *
- * @author thoeyeth
- */
 public class Main {
 
     /**
@@ -26,7 +22,6 @@ public class Main {
      */
     public static void main(String[] args) {
         System.out.println("Running...");
-        
         if (args.length < 1) {
             System.out.println("Usage: java -jar CSV2JSON.jar inpput.csv output.json");
         }
@@ -38,17 +33,17 @@ public class Main {
             // Initialize source
             FileReader input = new FileReader(filename);
             CSVReader reader = new CSVReader(input);
-            POIMapper mapper = new POIMapper(reader);
+            POIMapper mapper = new POIMapper(reader);            
             mapper.map();
             Map<String, Object> document = mapper.getDocument();
             JSONWriter writer = new JSONWriter();
             File outputfile = new File(output);
-            writer.write(document, outputfile);
+            writer.write(document, outputfile);          
         } catch (FileNotFoundException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, ex.getMessage(), ex);
         } catch (IOException iox) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, iox.getMessage(), iox);
-        }
+        }        
         System.out.println("Done...");
     }
 }
