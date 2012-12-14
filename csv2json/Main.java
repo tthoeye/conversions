@@ -6,6 +6,7 @@ package csv2json;
 
 import csv2json.io.CSVReader;
 import csv2json.io.JSONWriter;
+import csv2json.io.UitDatabankReader;
 import csv2json.mapping.POIMapper;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -14,6 +15,9 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPathExpressionException;
+import org.xml.sax.SAXException;
 
 public class Main {
 
@@ -28,7 +32,13 @@ public class Main {
         
         String filename = args[0];
         String output = args[1];
-        
+        Main main = new Main();
+        //main.parseCSV(filename, output);
+        //main.parseCSV("POI_issy.csv", "POI_issy.json");
+        main.testUitdatabank("events_gent.json");
+    }
+    
+    public void parseCSV(String filename, String output) {
         try {
             // Initialize source
             FileReader input = new FileReader(filename);
@@ -46,4 +56,43 @@ public class Main {
         }        
         System.out.println("Done...");
     }
+    
+    public void testGeocode(String address) {
+        Geocoder geo;
+        try {
+            geo = new Geocoder(address);
+            System.out.println("Geocoded " + address);
+            System.out.println("to:");
+            System.out.println(Float.toString(geo.getLat()) + " " + Float.toString(geo.getLng()));
+        } catch (IOException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (XPathExpressionException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ParserConfigurationException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SAXException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+    }
+    
+    public void testUitdatabank(String output) {
+       
+        try {
+            // Initialize source
+            UitDatabankReader udbr = new UitDatabankReader();
+            POIMapper mapper = new POIMapper(udbr);            
+            mapper.map();
+            Map<String, Object> document = mapper.getDocument();
+            JSONWriter writer = new JSONWriter();
+            File outputfile = new File(output);
+            writer.write(document, outputfile);          
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, ex.getMessage(), ex);
+        } catch (IOException iox) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, iox.getMessage(), iox);
+        }        
+        System.out.println("Done...");
+    }
+            
 }

@@ -93,4 +93,18 @@ public class Geocoder {
     }
   }
 
+    /**
+     * @return the lat
+     */
+    public float getLat() {
+        return lat;
+    }
+
+    /**
+     * @return the lng
+     */
+    public float getLng() {
+        return lng;
+    }
+
 }

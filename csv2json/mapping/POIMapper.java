@@ -31,6 +31,13 @@ public class POIMapper {
         getDocument().clear();
     }
     
+    /**
+     * This method maps the content contained in the RecordReader to a structure
+     * that complies with the JSON format expected by the Citadel templates.
+     * 
+     * This structure is intentionally kept as abstract as possible (Map<String, Object>)
+     * to accomodate for serialization to other formats then JSON in the future.
+     */
     public void map() {
         clear();
         Map<String, Object> dataset = new HashMap<>();
@@ -113,12 +120,32 @@ public class POIMapper {
      * @return 
      */
     private Map<String, Object> readPOI(Map<String, Object> record) {
+        
+        // List used column names 
+        String[] reservedcolumns = {
+            "id",
+            "title",
+            "description",
+            "category",
+            "latitude",
+            "longitude",
+            "address_value",
+            "address_postal",
+            "address_city",
+            "tel",
+            "web",
+            "email"
+        };
 
         // Construct a Map<String, Object> which will be the top node of this POI tree
         Map<String, Object> poi = new HashMap<>();
+        
+        // General POI description
         poi.put("id", record.get("id"));
         poi.put("title", record.get("title"));
-        poi.put("description", record.get("description"));
+        // Description when available
+        Object description = (record.get("description") != null) ? record.get("description") : "";
+        poi.put("description", description);
         List<String> categories = new ArrayList<>();
         categories.add((String) record.get("category"));
         poi.put("category", categories);
@@ -130,7 +157,9 @@ public class POIMapper {
         Map<String, Object> address = new HashMap<>();
         // Configure coordinates
         pos.put("srsName", "http://www.opengis.net/def/crs/EPSG/0/4326");
-        pos.put("posList", record.get("latitude") + " " + record.get("longitude"));
+        String latitude = (String) record.get("latitude");
+        String longitude = (String) record.get("longitude");
+        pos.put("posList", latitude.replaceAll(",", ".") + " " + longitude.replaceAll(",","."));
         point.put("pos", pos);
         point.put("term", "centroid");
         // Configure Address
@@ -141,30 +170,74 @@ public class POIMapper {
         location.put("point", point);
         poi.put("location", location);
         
-                // Configure Attributes
+        // Configure Attributes
         List<Map<String, Object>> attributes = new ArrayList<>();
         // Telephone
-        Map<String, Object> tel = new HashMap<>();
-        tel.put("term", "Tel");
-        tel.put("type", "tel");
-        tel.put("text", record.get("tel"));
-        tel.put("tplIdentifier", "#Citadel_telephone");
-        attributes.add(tel);
+        if (record.get("tel") != null) {
+            Map<String, Object> tel = new HashMap<>();
+            tel.put("term", "Tel");
+            tel.put("type", "tel");
+            tel.put("text", record.get("tel"));
+            tel.put("tplIdentifier", "#Citadel_telephone");
+            attributes.add(tel);
+        }
         // Website
-        Map<String, Object> web = new HashMap<>();
-        web.put("term", "url");
-        web.put("type", "url");
-        web.put("text", record.get("web"));
-        web.put("tplIdentifier", "#Citadel_website");
-        attributes.add(web);
+        if (record.get("web") != null) {
+            Map<String, Object> web = new HashMap<>();
+            web.put("term", "url");
+            web.put("type", "url");
+            web.put("text", record.get("web"));
+            web.put("tplIdentifier", "#Citadel_website");
+            attributes.add(web);
+        }
         // Email
+        if (record.get("email") != null) {
         Map<String, Object> email = new HashMap<>();
-        email.put("term", "E-mail");
-        email.put("type", "email");
-        email.put("text", record.get("email"));
-        email.put("tplIdentifier", "#Citadel_email");
-        attributes.add(email); 
+            email.put("term", "E-mail");
+            email.put("type", "email");
+            email.put("text", record.get("email"));
+            email.put("tplIdentifier", "#Citadel_email");
+            attributes.add(email);
+        }
+        // Event Start Date
+        if (record.get("event_start") != null) {
+            Map<String, Object> email = new HashMap<>();
+            email.put("term", "Start Date");
+            email.put("type", "date");
+            email.put("text", record.get("event_start"));
+            email.put("tplIdentifier", "#Citadel_eventStart");
+            attributes.add(email);
+        }
         
+        // Event End Date
+        if (record.get("event_end") != null) {
+            Map<String, Object> email = new HashMap<>();
+            email.put("term", "End Date");
+            email.put("type", "date");
+            email.put("text", record.get("event_end"));
+            email.put("tplIdentifier", "#Citadel_eventEnd");
+            attributes.add(email);
+        }
+        
+        // Event Place
+        if (record.get("event_place") != null) {
+            Map<String, Object> email = new HashMap<>();
+            email.put("term", "Event Place");
+            email.put("type", "string");
+            email.put("text", record.get("event_place"));
+            email.put("tplIdentifier", "#Citadel_eventPlace");
+            attributes.add(email);
+        }
+        
+         // Event Schedule
+        if (record.get("event_schedule") != null) {
+            Map<String, Object> email = new HashMap<>();
+            email.put("term", "Schedule");
+            email.put("type", "string");
+            email.put("text", record.get("event_schedule"));
+            email.put("tplIdentifier", "#Citadel_eventSchedule");
+            attributes.add(email);
+        }
         poi.put("attribute", attributes);
         return poi;
     }
