@@ -2,12 +2,12 @@
  * This work is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/ or send a letter to Creative Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
  * @author Thimo Thoeye 
  */ 
-package csv2json;
 
-import csv2json.io.CSVReader;
-import csv2json.io.JSONWriter;
-import csv2json.io.UitDatabankReader;
-import csv2json.mapping.POIMapper;
+import io.CSVReader;
+import io.JSONWriter;
+import io.UitDatabankReader;
+import io.VisitGentReader;
+import mapping.POIMapper;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -35,7 +35,7 @@ public class Main {
         Main main = new Main();
         //main.parseCSV(filename, output);
         //main.parseCSV("POI_issy.csv", "POI_issy.json");
-        main.testUitdatabank("events_gent.json");
+        main.decodeVisitGent(filename, output);
     }
     
     public void parseCSV(String filename, String output) {
@@ -73,6 +73,26 @@ public class Main {
         } catch (SAXException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
+    }
+    
+    public void decodeVisitGent(String input, String output) {
+        try {
+            // Initialize source
+            File inputfile = new File(input);
+            VisitGentReader vgr = new VisitGentReader(inputfile);
+            POIMapper mapper = new POIMapper(vgr);            
+            mapper.map();
+            Map<String, Object> document = mapper.getDocument();
+            JSONWriter writer = new JSONWriter();
+            File outputfile = new File(output);
+            writer.write(document, outputfile);          
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, ex.getMessage(), ex);
+        } catch (IOException iox) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, iox.getMessage(), iox);
+        }        
+        System.out.println("Done...");
         
     }
     

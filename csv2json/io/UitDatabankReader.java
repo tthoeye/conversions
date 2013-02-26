@@ -4,7 +4,7 @@
  * @author Thimo Thoeye
  */
 
-package csv2json.io;
+package io;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
