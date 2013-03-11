@@ -59,7 +59,7 @@ public class VisitGentReader implements RecordReader {
             // Address
             String street = (String) contact.get("street");
             String number = (String) contact.get("number");
-            poi.put("address_value", street + " " + number);
+            record.put("address_value", street + " " + number);
             String city = (String) contact.get("city");
             String[] cityparts = city.split(" ");
             if (cityparts.length == 2) {
