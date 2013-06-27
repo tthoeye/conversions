@@ -15,6 +15,9 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JFrame;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 import org.xml.sax.SAXException;
@@ -34,8 +37,32 @@ public class Main {
         String output = args[1];
         Main main = new Main();
         //main.parseCSV(filename, output);
-        //main.parseCSV("POI_issy.csv", "POI_issy.json");
-        main.decodeVisitGent(filename, output);
+        main.parseCSV("POI_issy.csv", "POI_issy.json");
+        //main.decodeVisitGent(filename, output);
+        //main.buildUI();
+    }
+    
+    public void buildUI() {
+         try {
+            // Set cross-platform Java L&F (also called "Metal")
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } 
+        catch (UnsupportedLookAndFeelException e) {
+           // handle exception
+        }
+        catch (ClassNotFoundException e) {
+           // handle exception
+        }
+        catch (InstantiationException e) {
+           // handle exception
+        }
+        catch (IllegalAccessException e) {
+           // handle exception
+        }
+        
+        JFrame frame = new ui.GeocoderFrame();
+        frame.setVisible(true);
+        frame.pack();
     }
     
     public void parseCSV(String filename, String output) {

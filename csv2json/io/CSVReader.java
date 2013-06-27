@@ -7,6 +7,9 @@ package io;
 import exceptions.CSVColumnCountException;
 import io.RecordReader;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
@@ -29,6 +32,10 @@ public class CSVReader extends BufferedReader implements RecordReader {
     protected boolean hasHeader;
     protected List<String> headers;
     
+    
+    public CSVReader(File file) throws FileNotFoundException {
+        this(new FileReader(file));
+    }
     
     public CSVReader (Reader rdr) {
         this(rdr, 1, ";", " " , true);
@@ -86,5 +93,15 @@ public class CSVReader extends BufferedReader implements RecordReader {
             record.put(headers.get(i), items[i]);
         }
         return record;
+    }
+
+    @Override
+    public String getName() {
+        return "Generic CSV Data";
+    }
+
+    @Override
+    public String getSourceFormat() {
+        return "CSV";
     }
 }

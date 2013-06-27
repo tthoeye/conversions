@@ -34,6 +34,14 @@ public class VisitGentReader implements RecordReader {
         initialize();
     }
     
+    public String getName() {
+        return "Visit Gent Data";
+    }
+    
+    public String getSourceFormat() {
+        return "JSON";
+    }
+    
     @Override
     public Map<String, Object> readRecord() throws IOException {
         if (index >= records.size()) {

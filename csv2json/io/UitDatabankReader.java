@@ -62,6 +62,13 @@ public class UitDatabankReader implements RecordReader {
     
     }
     
+    public String getName() {
+        return "UIT in Vlaanderen Data";
+    }
+    
+    public String getSourceFormat() {
+        return "JSON";
+    }
     
     @Override
     public Map<String, Object> readRecord() throws IOException {

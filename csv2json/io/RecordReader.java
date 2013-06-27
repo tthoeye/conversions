@@ -4,6 +4,7 @@
  */ 
 package io;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
@@ -12,5 +13,9 @@ public interface RecordReader {
     
     abstract Map<String, Object> readRecord()
             throws IOException;
+    
+    abstract String getName();
+    
+    abstract String getSourceFormat();
     
 }
