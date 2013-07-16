@@ -53,7 +53,7 @@ public class CSVReader extends BufferedReader implements RecordReader {
         this.delimiter = delimiter;
         this.encapsulator = encapsulator;
         this.hasHeader = hasHeader;
-        this.headers = new ArrayList<>();
+        this.headers = new ArrayList<String>();
         if (hasHeader) {
             readHeader();
         }
@@ -88,7 +88,7 @@ public class CSVReader extends BufferedReader implements RecordReader {
         if (items.length != headers.size()) {
             throw new CSVColumnCountException(items.length, headers.size());
         }
-        Map<String, Object> record = new HashMap<>(headers.size());
+        Map<String, Object> record = new HashMap<String, Object>(headers.size());
         for (int i = 0; i < headers.size(); i++) {
             record.put(headers.get(i), items[i]);
         }
@@ -103,5 +103,9 @@ public class CSVReader extends BufferedReader implements RecordReader {
     @Override
     public String getSourceFormat() {
         return "CSV";
+    }
+    
+    public List<String> getHeaders() {
+        return this.headers;
     }
 }

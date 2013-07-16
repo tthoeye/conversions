@@ -24,7 +24,7 @@ public class POIMapper {
     
     public POIMapper(RecordReader rdr) {
         this.rrdr = rdr;
-        this.document = new HashMap<>();
+        this.document = new HashMap<String, Object>();
     } 
     
     public void clear() {
@@ -40,9 +40,9 @@ public class POIMapper {
      */
     public void map() {
         clear();
-        Map<String, Object> dataset = new HashMap<>();
+        Map<String, Object> dataset = new HashMap<String, Object>();
         // Add Individuals POIs
-        List<Map<String, Object>> pois = new ArrayList<>();
+        List<Map<String, Object>> pois = new ArrayList<Map<String, Object>>();
         Map<String, Object> record;
         int i = 0;
         try {
@@ -66,12 +66,12 @@ public class POIMapper {
         dataset.put("updated", now);
         dataset.put("created", now);
         dataset.put("lang", "fr-FR");
-        Map<String, String> author = new HashMap<>();
+        Map<String, String> author = new HashMap<String, String>();
         author.put("id", "http://www.ville-issy.fr/");
         author.put("value", "City of Athens");
         dataset.put("author", author);
         dataset.put("license", new HashMap<String, String>());
-        Map<String, String> link = new HashMap<>();
+        Map<String, String> link = new HashMap<String, String>();
         dataset.put("link", link);
         dataset.put("updatefrequency", "");
                       
@@ -138,7 +138,7 @@ public class POIMapper {
         };
 
         // Construct a Map<String, Object> which will be the top node of this POI tree
-        Map<String, Object> poi = new HashMap<>();
+        Map<String, Object> poi = new HashMap<String, Object>();
         
         // General POI description
         poi.put("id", record.get("id"));
@@ -146,15 +146,15 @@ public class POIMapper {
         // Description when available
         Object description = (record.get("description") != null) ? record.get("description") : "";
         poi.put("description", description);
-        List<String> categories = new ArrayList<>();
+        List<String> categories = new ArrayList<String>();
         categories.add((String) record.get("category"));
         poi.put("category", categories);
         
         // Initialize the position
-        Map<String, Object> location = new HashMap<>();
-        Map<String, Object> point = new HashMap<>();
-        Map<String, Object> pos = new HashMap<>();
-        Map<String, Object> address = new HashMap<>();
+        Map<String, Object> location = new HashMap<String, Object>();
+        Map<String, Object> point = new HashMap<String, Object>();
+        Map<String, Object> pos = new HashMap<String, Object>();
+        Map<String, Object> address = new HashMap<String, Object>();
         // Configure coordinates
         pos.put("srsName", "http://www.opengis.net/def/crs/EPSG/0/4326");
         String latitude = (String) record.get("latitude");
@@ -178,10 +178,10 @@ public class POIMapper {
         poi.put("location", location);
         
         // Configure Attributes
-        List<Map<String, Object>> attributes = new ArrayList<>();
+        List<Map<String, Object>> attributes = new ArrayList<Map<String, Object>>();
         // Telephone
         if (record.get("tel") != null) {
-            Map<String, Object> tel = new HashMap<>();
+            Map<String, Object> tel = new HashMap<String, Object>();
             tel.put("term", "Tel");
             tel.put("type", "tel");
             tel.put("text", record.get("tel"));
@@ -190,7 +190,7 @@ public class POIMapper {
         }
         // Website
         if (record.get("web") != null) {
-            Map<String, Object> web = new HashMap<>();
+            Map<String, Object> web = new HashMap<String, Object>();
             web.put("term", "url");
             web.put("type", "url");
             web.put("text", record.get("web"));
@@ -199,7 +199,7 @@ public class POIMapper {
         }
         // Email
         if (record.get("email") != null) {
-        Map<String, Object> email = new HashMap<>();
+        Map<String, Object> email = new HashMap<String, Object>();
             email.put("term", "E-mail");
             email.put("type", "email");
             email.put("text", record.get("email"));
@@ -208,7 +208,7 @@ public class POIMapper {
         }
         // Event Start Date
         if (record.get("event_start") != null) {
-            Map<String, Object> email = new HashMap<>();
+            Map<String, Object> email = new HashMap<String, Object>();
             email.put("term", "Start Date");
             email.put("type", "date");
             email.put("text", record.get("event_start"));
@@ -218,7 +218,7 @@ public class POIMapper {
         
         // Event End Date
         if (record.get("event_end") != null) {
-            Map<String, Object> email = new HashMap<>();
+            Map<String, Object> email = new HashMap<String, Object>();
             email.put("term", "End Date");
             email.put("type", "date");
             email.put("text", record.get("event_end"));
@@ -228,7 +228,7 @@ public class POIMapper {
         
         // Event Place
         if (record.get("event_place") != null) {
-            Map<String, Object> email = new HashMap<>();
+            Map<String, Object> email = new HashMap<String, Object>();
             email.put("term", "Event Place");
             email.put("type", "string");
             email.put("text", record.get("event_place"));
@@ -238,7 +238,7 @@ public class POIMapper {
         
          // Event Schedule
         if (record.get("event_schedule") != null) {
-            Map<String, Object> email = new HashMap<>();
+            Map<String, Object> email = new HashMap<String, Object>();
             email.put("term", "Schedule");
             email.put("type", "string");
             email.put("text", record.get("event_schedule"));

@@ -29,17 +29,19 @@ public class Main {
      */
     public static void main(String[] args) {
         System.out.println("Running...");
+        Main main = new Main();
         if (args.length < 1) {
-            System.out.println("Usage: java -jar CSV2JSON.jar inpput.csv output.json");
+            main.buildUI();
+            //System.out.println("Usage: java -jar CSV2JSON.jar inpput.csv output.json");
         }
         
         String filename = args[0];
         String output = args[1];
-        Main main = new Main();
+        
         //main.parseCSV(filename, output);
-        main.parseCSV("POI_issy.csv", "POI_issy.json");
+        //main.parseCSV("POI_issy.csv", "POI_issy.json");
         //main.decodeVisitGent(filename, output);
-        //main.buildUI();
+        
     }
     
     public void buildUI() {
@@ -60,7 +62,7 @@ public class Main {
            // handle exception
         }
         
-        JFrame frame = new ui.GeocoderFrame();
+        JFrame frame = new ui.ConvertorFrame();
         frame.setVisible(true);
         frame.pack();
     }

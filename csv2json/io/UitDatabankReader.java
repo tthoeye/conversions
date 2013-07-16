@@ -109,7 +109,7 @@ public class UitDatabankReader implements RecordReader {
             
              // Construct the record using the "default" fields
              // id;title;shop_category;category;type;description;address_value;address_postal;address_city;tel;web;email;latitude;longitude
-             Map<String, Object> record = new HashMap<>();
+             Map<String, Object> record = new HashMap<String, Object>();
              record.put("id", index);
              record.put("title", itemEl.getAttribute("title"));
              record.put("description", itemEl.getAttribute("shortdescription"));
