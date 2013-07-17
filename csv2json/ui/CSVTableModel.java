@@ -22,6 +22,7 @@ public class CSVTableModel extends DefaultTableModel {
      */
     public CSVTableModel() {
         super();
+        reader = null;
     }
     
     public boolean setCSVReader(CSVReader reader) {
@@ -31,4 +32,9 @@ public class CSVTableModel extends DefaultTableModel {
         // TODO: detect if anything changed
         return true;
     }
+    
+    public CSVReader getCSVReader() {
+        return reader;
+    }
+    
 }

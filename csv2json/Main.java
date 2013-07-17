@@ -62,7 +62,7 @@ public class Main {
            // handle exception
         }
         
-        JFrame frame = new ui.ConvertorFrame();
+        JFrame frame = new ui.GeocoderFrame();
         frame.setVisible(true);
         frame.pack();
     }
@@ -84,25 +84,6 @@ public class Main {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, iox.getMessage(), iox);
         }        
         System.out.println("Done...");
-    }
-    
-    public void testGeocode(String address) {
-        Geocoder geo;
-        try {
-            geo = new Geocoder(address);
-            System.out.println("Geocoded " + address);
-            System.out.println("to:");
-            System.out.println(Float.toString(geo.getLat()) + " " + Float.toString(geo.getLng()));
-        } catch (IOException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (XPathExpressionException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ParserConfigurationException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (SAXException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
     }
     
     public void decodeVisitGent(String input, String output) {

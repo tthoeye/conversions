@@ -1,3 +1,5 @@
+package io;
+
 /*
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
@@ -32,7 +34,11 @@ public class Geocoder {
   private float lat;
   private float lng;
   
-  public Geocoder(String address) throws IOException, XPathExpressionException, ParserConfigurationException, SAXException {
+  public Geocoder() { 
+  }
+
+  public float[] getLatLong(String address)
+      throws IOException, XPathExpressionException, ParserConfigurationException, SAXException {
 
     // prepare a URL to the geocoder
     URL url = new URL(GEOCODER_REQUEST_PREFIX_FOR_XML + "?address=" + URLEncoder.encode(address, "UTF-8") + "&sensor=false");
@@ -90,20 +96,10 @@ public class Geocoder {
       if("lat".equals(node.getNodeName())) { lat = Float.parseFloat(node.getTextContent()); }
       if("lng".equals(node.getNodeName())) { lng = Float.parseFloat(node.getTextContent()); }
     }
+    float[] result = new float[2];
+    result[0] = lat;
+    result[1] = lng;
+    return result;
   }
-
-    /**
-     * @return the lat
-     */
-    public float getLat() {
-        return lat;
-    }
-
-    /**
-     * @return the lng
-     */
-    public float getLng() {
-        return lng;
-    }
 
 }

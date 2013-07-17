@@ -4,21 +4,32 @@
  */
 package ui;
 
+import exceptions.CSVColumnCountException;
 import io.CSVReader;
+import io.Geocoder;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import javax.swing.ListSelectionModel;
+import mapping.POIMapper;
 
 /**
  *
  * @author thoeyeth
  */
-public class ConvertorFrame extends javax.swing.JFrame {
+public class GeocoderFrame extends javax.swing.JFrame {
     
     private JFileChooser fc;
     private HashMap methods;
@@ -27,7 +38,7 @@ public class ConvertorFrame extends javax.swing.JFrame {
     /**
      * Creates new form MainFrame
      */
-    public ConvertorFrame() {
+    public GeocoderFrame() {
         this.fc = new JFileChooser();
         this.methods = new HashMap<String, String>();
         this.methods.put("test", "This is a testmethod");
@@ -57,7 +68,8 @@ public class ConvertorFrame extends javax.swing.JFrame {
         fieldPanel = new javax.swing.JPanel();
         fieldScroller = new javax.swing.JScrollPane();
         fieldTable = new javax.swing.JTable();
-        editFieldButton = new javax.swing.JButton();
+        excludeFieldButton = new javax.swing.JButton();
+        jLabel1 = new javax.swing.JLabel();
         closeButton = new javax.swing.JButton();
         geocodeButton = new javax.swing.JButton();
 
@@ -81,6 +93,11 @@ public class ConvertorFrame extends javax.swing.JFrame {
         destinationText.setText("Select destination...");
 
         destinationSelectButton.setText("Choose");
+        destinationSelectButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                destinationSelectButtonActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout sourcePanelLayout = new javax.swing.GroupLayout(sourcePanel);
         sourcePanel.setLayout(sourcePanelLayout);
@@ -123,15 +140,21 @@ public class ConvertorFrame extends javax.swing.JFrame {
         fieldPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Fields"));
         fieldPanel.setName("Fields"); // NOI18N
 
+        fieldTable.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
         fieldTable.setModel(this.fieldModel);
+        fieldTable.setDragEnabled(true);
+        fieldTable.setDropMode(javax.swing.DropMode.INSERT_ROWS);
+        fieldTable.setTransferHandler(new TableRowTransferHandler(fieldTable));
         fieldScroller.setViewportView(fieldTable);
 
-        editFieldButton.setText("Exclude field");
-        editFieldButton.addActionListener(new java.awt.event.ActionListener() {
+        excludeFieldButton.setText("Exclude field");
+        excludeFieldButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                editFieldButtonActionPerformed(evt);
+                excludeFieldButtonActionPerformed(evt);
             }
         });
+
+        jLabel1.setText("<html>Please drag the fields into the right order for geocoding. <br/>Fields can be excluded by clicking the \"Exclude field\" button</html>");
 
         javax.swing.GroupLayout fieldPanelLayout = new javax.swing.GroupLayout(fieldPanel);
         fieldPanel.setLayout(fieldPanelLayout);
@@ -142,23 +165,35 @@ public class ConvertorFrame extends javax.swing.JFrame {
                 .addGroup(fieldPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(fieldScroller)
                     .addGroup(fieldPanelLayout.createSequentialGroup()
-                        .addComponent(editFieldButton)
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                        .addComponent(excludeFieldButton)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addComponent(jLabel1))
                 .addContainerGap())
         );
         fieldPanelLayout.setVerticalGroup(
             fieldPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(fieldPanelLayout.createSequentialGroup()
-                .addContainerGap(40, Short.MAX_VALUE)
+                .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 34, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(fieldScroller, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(editFieldButton)
+                .addComponent(excludeFieldButton)
                 .addContainerGap())
         );
 
         closeButton.setText("Close");
+        closeButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                closeButtonActionPerformed(evt);
+            }
+        });
 
         geocodeButton.setText("Geocode");
+        geocodeButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                geocodeButtonActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -196,7 +231,7 @@ public class ConvertorFrame extends javax.swing.JFrame {
     private void sourceSelectButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sourceSelectButtonActionPerformed
         fc.addChoosableFileFilter(new CSVFilter());
         //fc.setAcceptAllFileFilterUsed(false);
-        int returnVal = fc.showOpenDialog(ConvertorFrame.this);
+        int returnVal = fc.showOpenDialog(GeocoderFrame.this);
 
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             File file = fc.getSelectedFile();
@@ -213,9 +248,112 @@ public class ConvertorFrame extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_sourceSelectButtonActionPerformed
 
-    private void editFieldButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editFieldButtonActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_editFieldButtonActionPerformed
+    private void excludeFieldButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_excludeFieldButtonActionPerformed
+        int selected = this.fieldTable.getSelectedRowCount();
+        int i = 0;
+        while (i < selected) {
+            this.fieldModel.removeRow(this.fieldTable.getSelectedRow());
+            i++;
+        }
+    }//GEN-LAST:event_excludeFieldButtonActionPerformed
+
+    private void geocodeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_geocodeButtonActionPerformed
+        try {
+            String delimiter = ";";
+            String encapsulator = "";
+            
+            File destinationFile = new File(destinationText.getText());
+            if (destinationFile.exists()) {
+                //Custom button text
+                Object[] options = {"Cancel", "Overwrite"};
+                int n = JOptionPane.showOptionDialog(this,
+                    "Destination file exists!\n"
+                    + "Do you want to overwrite it?",
+                    "File exists!",
+                    JOptionPane.OK_CANCEL_OPTION,
+                    JOptionPane.WARNING_MESSAGE,
+                    null,
+                    options,
+                    options[0]);
+                if (n != 1) {
+                    return;
+                }
+            }
+            
+            BufferedWriter output = new BufferedWriter(new FileWriter(destinationFile, true));
+
+                   
+            // Actual geocoding of the stuff
+            CSVTableModel model = (CSVTableModel) fieldTable.getModel();
+            CSVReader reader = model.getCSVReader();
+            Geocoder coder = new Geocoder();
+            
+            // Write header line
+            String headerline = "";
+            for (String s : model.getCSVReader().getHeaders()) {
+                headerline += encapsulator + s + encapsulator + delimiter;
+            }
+            headerline += "\n";
+            output.write(headerline);
+            output.flush();
+            
+            List<String> reqdfields = new ArrayList<String>();
+            for (int i = 0; i < model.getRowCount(); i++) {
+                reqdfields.add((String)model.getValueAt(i, 0));
+                System.out.println(model.getValueAt(i, 0));
+            }
+            
+            List<Map<String, Object>> document = new ArrayList<Map<String, Object>>();
+            Map<String, Object> record;
+            int i = 0;
+ 
+            while ((record = reader.readRecord()) != null)   {
+                try {
+                    String address = "";
+                    for (String s : reqdfields) {
+                        address += record.get(s) + " ";
+                    }
+                    float[] coords = coder.getLatLong(address);
+                    record.put("lat", coords[0]);
+                    record.put("lng", coords[1]);
+                    System.out.println(address);
+                    i++;
+                } catch (IOException ex) {
+                    Logger.getLogger(POIMapper.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (CSVColumnCountException ccex) {
+                    Logger.getLogger(POIMapper.class.getName()).log(Level.SEVERE, "Column Count Error on line " + i + ". Skipping record.", ccex);
+                }
+            }
+            
+        } catch (Exception ex) {
+            String message = ex.getMessage();
+            Object[] options = {"OK"};
+            int n = JOptionPane.showOptionDialog(this,
+                "An error occurred while trying to write to the destination file indicated:\n"
+                + message,
+                "Cannot write!",
+                JOptionPane.OK_OPTION,
+                JOptionPane.ERROR_MESSAGE,
+                null,
+                options,
+                options[0]);
+        }
+    }//GEN-LAST:event_geocodeButtonActionPerformed
+
+    private void closeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeButtonActionPerformed
+        System.exit(0);
+    }//GEN-LAST:event_closeButtonActionPerformed
+
+    private void destinationSelectButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_destinationSelectButtonActionPerformed
+        int returnVal = fc.showSaveDialog(GeocoderFrame.this);
+
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            File file = fc.getSelectedFile();
+            destinationText.setText(file.getAbsolutePath());
+        } else {
+            System.out.println("cancelled");
+        }
+    }//GEN-LAST:event_destinationSelectButtonActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -223,11 +361,12 @@ public class ConvertorFrame extends javax.swing.JFrame {
     private javax.swing.JLabel destinationLabel;
     private javax.swing.JButton destinationSelectButton;
     private javax.swing.JTextField destinationText;
-    private javax.swing.JButton editFieldButton;
+    private javax.swing.JButton excludeFieldButton;
     private javax.swing.JPanel fieldPanel;
     private javax.swing.JScrollPane fieldScroller;
     private javax.swing.JTable fieldTable;
     private javax.swing.JButton geocodeButton;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel sourceLabel;
     private javax.swing.JPanel sourcePanel;
     private javax.swing.JButton sourceSelectButton;
