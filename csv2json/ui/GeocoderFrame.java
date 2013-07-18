@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.ComboBoxModel;
@@ -293,14 +294,14 @@ public class GeocoderFrame extends javax.swing.JFrame {
             for (String s : model.getCSVReader().getHeaders()) {
                 headerline += encapsulator + s + encapsulator + delimiter;
             }
+            headerline += encapsulator + "lat" + encapsulator + delimiter;
+            headerline += encapsulator + "lng" + encapsulator + delimiter;
             headerline += "\n";
             output.write(headerline);
-            output.flush();
             
             List<String> reqdfields = new ArrayList<String>();
             for (int i = 0; i < model.getRowCount(); i++) {
                 reqdfields.add((String)model.getValueAt(i, 0));
-                System.out.println(model.getValueAt(i, 0));
             }
             
             List<Map<String, Object>> document = new ArrayList<Map<String, Object>>();
@@ -311,19 +312,41 @@ public class GeocoderFrame extends javax.swing.JFrame {
                 try {
                     String address = "";
                     for (String s : reqdfields) {
-                        address += record.get(s) + " ";
+                        address += record.get(s) + ", ";
                     }
+                    address += "Belgium";
                     float[] coords = coder.getLatLong(address);
-                    record.put("lat", coords[0]);
-                    record.put("lng", coords[1]);
-                    System.out.println(address);
+                    Thread.sleep(500);
                     i++;
+                    String line = "";
+                    for (String s : model.getCSVReader().getHeaders()) {
+                        line += encapsulator + record.get(s) + encapsulator + delimiter;
+                    }
+                    String lat, lng;
+                    lat = (coords[0] == Float.NaN) ? "" : Float.toString(coords[0]);
+                    lng = (coords[1] == Float.NaN) ? "" : Float.toString(coords[1]);
+                    line += encapsulator + lat + encapsulator + delimiter;
+                    line += encapsulator + lng + encapsulator + delimiter;
+                    line += "\n";
+                    output.write(line);
                 } catch (IOException ex) {
                     Logger.getLogger(POIMapper.class.getName()).log(Level.SEVERE, null, ex);
                 } catch (CSVColumnCountException ccex) {
                     Logger.getLogger(POIMapper.class.getName()).log(Level.SEVERE, "Column Count Error on line " + i + ". Skipping record.", ccex);
                 }
             }
+            
+            output.flush();
+            
+            Object[] options = {"OK"};
+            int n = JOptionPane.showOptionDialog(this,
+                "Geocoding successful",
+                "Success!",
+                JOptionPane.OK_OPTION,
+                JOptionPane.PLAIN_MESSAGE,
+                null,
+                options,
+                options[0]);
             
         } catch (Exception ex) {
             String message = ex.getMessage();

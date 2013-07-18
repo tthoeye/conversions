@@ -87,8 +87,9 @@ public class Geocoder {
     }
     System.out.println("lat/lng=" + lat + "," + lng);
     
+    /*
     // c) extract the coordinates of the first result
-    resultNodeList = (NodeList) xpath.evaluate("/GeocodeResponse/result[1]/address_component[type/text() = 'administrative_area_level_1']/country[short_name/text() = 'US']/*", geocoderResultDocument, XPathConstants.NODESET);
+    resultNodeList = (NodeList) xpath.evaluate("/GeocodeResponse/result[1]/address_component[type/text() = 'administrative_area_level_1']/country[short_name/text() = 'BE']/*", geocoderResultDocument, XPathConstants.NODESET);
     float lat = Float.NaN;
     float lng = Float.NaN;
     for(int i=0; i<resultNodeList.getLength(); ++i) {
@@ -96,6 +97,7 @@ public class Geocoder {
       if("lat".equals(node.getNodeName())) { lat = Float.parseFloat(node.getTextContent()); }
       if("lng".equals(node.getNodeName())) { lng = Float.parseFloat(node.getTextContent()); }
     }
+    */
     float[] result = new float[2];
     result[0] = lat;
     result[1] = lng;
