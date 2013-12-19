@@ -6,6 +6,7 @@ package io;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 
@@ -17,5 +18,9 @@ public interface RecordReader {
     abstract String getName();
     
     abstract String getSourceFormat();
+    
+    abstract List<String> getHeaders();
+            
+    abstract void setHeaders(List<String> headers);
     
 }

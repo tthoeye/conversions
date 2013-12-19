@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -122,6 +123,16 @@ public class VisitGentReader implements RecordReader {
             System.err.println("Parse Exception while reading " + inputfile.getName());
             Logger.getLogger(VisitGentReader.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    @Override
+    public List<String> getHeaders() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void setHeaders(List<String> headers) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
 }

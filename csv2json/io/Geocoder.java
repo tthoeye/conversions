@@ -10,6 +10,7 @@ package io;
  * This work is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/ or send a letter to Creative Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
  * @author Thimo Thoeye
  */
+import exceptions.CSVColumnCountException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -23,9 +24,15 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
+import mapping.POIMapper;
 import org.xml.sax.SAXException;
+import ui.GeocoderFrame;
 
 public class Geocoder {
 
@@ -34,8 +41,43 @@ public class Geocoder {
   private float lat;
   private float lng;
   
-  public Geocoder() { 
+  private List<String> reqdfields;
+  
+  public Geocoder(List<String> reqdfields) {
+      this.reqdfields = reqdfields;
   }
+  
+  public Map<String, Object> geocodeRecord(Map<String, Object> record) {
+      try {
+        String address = "";
+        for (String s : reqdfields) {
+            address += record.get(s) + ", ";
+        }
+        address += "Belgium";
+        System.out.println("Geocoding " + address);
+        float[] coords = getLatLong(address);
+        Thread.sleep(500);
+
+        String lat = (coords[0] == Float.NaN) ? "" : Float.toString(coords[0]);
+        String lng = (coords[1] == Float.NaN) ? "" : Float.toString(coords[1]);
+        record.put("lat", lat);
+        record.put("lng", lng);
+
+      } catch (IOException ex) {
+          Logger.getLogger(POIMapper.class.getName()).log(Level.SEVERE, null, ex);
+      } catch (CSVColumnCountException ccex) {
+          Logger.getLogger(POIMapper.class.getName()).log(Level.SEVERE, "Column Count Error. Skipping record.", ccex);
+      } catch (InterruptedException ex) {
+          Logger.getLogger(GeocoderFrame.class.getName()).log(Level.SEVERE, null, ex);
+      } catch (XPathExpressionException ex) {
+          Logger.getLogger(Geocoder.class.getName()).log(Level.SEVERE, null, ex);
+      } catch (ParserConfigurationException ex) {
+          Logger.getLogger(Geocoder.class.getName()).log(Level.SEVERE, null, ex);
+      } catch (SAXException ex) {
+          Logger.getLogger(Geocoder.class.getName()).log(Level.SEVERE, null, ex);
+      }
+    return record;
+}
 
   public float[] getLatLong(String address)
       throws IOException, XPathExpressionException, ParserConfigurationException, SAXException {

@@ -5,7 +5,6 @@
 package io;
 
 import io.PrettyJSONWriter;
-import io.PrettyJSONWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -13,16 +12,16 @@ import java.io.StringWriter;
 import java.util.Map;
 import org.json.simple.JSONValue;
 
-public class JSONWriter {
+public class JSONWriter extends DataWriter {
     
-    public JSONWriter() {
-        
+    
+    public JSONWriter(File file) throws IOException {
+        super(file);
     }
     
     public void write(Map<String, Object> document, File file)
         throws IOException {
         
-        StringWriter out = new StringWriter();
         
         PrettyJSONWriter pretty = new PrettyJSONWriter();
         JSONValue.writeJSONString(document, pretty);
@@ -30,6 +29,7 @@ public class JSONWriter {
         String jsonText = pretty.toString();
         FileWriter outputfile = new FileWriter(file);
         outputfile.write(jsonText);
+        System.out.print(jsonText);
         outputfile.flush();
     }
 }

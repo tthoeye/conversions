@@ -105,7 +105,13 @@ public class CSVReader extends BufferedReader implements RecordReader {
         return "CSV";
     }
     
+    @Override
     public List<String> getHeaders() {
         return this.headers;
+    }
+
+    @Override
+    public void setHeaders(List<String> headers) {
+        this.headers = headers;
     }
 }

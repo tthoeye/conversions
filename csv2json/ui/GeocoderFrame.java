@@ -5,8 +5,11 @@
 package ui;
 
 import exceptions.CSVColumnCountException;
+import io.CSVFileWriter;
 import io.CSVReader;
+import io.DataWriter;
 import io.Geocoder;
+import io.JSONWriter;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -24,7 +27,12 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.ListSelectionModel;
+import javax.swing.filechooser.FileFilter;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPathExpressionException;
+import mapping.CSVMapper;
 import mapping.POIMapper;
+import org.xml.sax.SAXException;
 
 /**
  *
@@ -35,6 +43,8 @@ public class GeocoderFrame extends javax.swing.JFrame {
     private JFileChooser fc;
     private HashMap methods;
     private CSVTableModel fieldModel;
+    private String lastDestinationFilter;
+    private String lastSourceFilter;
 
     /**
      * Creates new form MainFrame
@@ -44,6 +54,8 @@ public class GeocoderFrame extends javax.swing.JFrame {
         this.methods = new HashMap<String, String>();
         this.methods.put("test", "This is a testmethod");
         this.fieldModel = new CSVTableModel();
+        this.lastDestinationFilter = null;
+        this.lastSourceFilter = null;
         initComponents();
     }
     
@@ -205,7 +217,7 @@ public class GeocoderFrame extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(sourcePanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(433, 433, 433)
+                        .addGap(444, 444, 444)
                         .addComponent(geocodeButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(closeButton))
@@ -236,6 +248,7 @@ public class GeocoderFrame extends javax.swing.JFrame {
 
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             File file = fc.getSelectedFile();
+            lastSourceFilter = fc.getFileFilter().getDescription();
             //This is where a real application would open the file.
             sourceText.setText(file.getAbsolutePath());
             try {
@@ -281,62 +294,45 @@ public class GeocoderFrame extends javax.swing.JFrame {
                 }
             }
             
-            BufferedWriter output = new BufferedWriter(new FileWriter(destinationFile, true));
-
-                   
-            // Actual geocoding of the stuff
-            CSVTableModel model = (CSVTableModel) fieldTable.getModel();
-            CSVReader reader = model.getCSVReader();
-            Geocoder coder = new Geocoder();
-            
-            // Write header line
-            String headerline = "";
-            for (String s : model.getCSVReader().getHeaders()) {
-                headerline += encapsulator + s + encapsulator + delimiter;
-            }
-            headerline += encapsulator + "lat" + encapsulator + delimiter;
-            headerline += encapsulator + "lng" + encapsulator + delimiter;
-            headerline += "\n";
-            output.write(headerline);
-            
+            // Geocode!
             List<String> reqdfields = new ArrayList<String>();
-            for (int i = 0; i < model.getRowCount(); i++) {
-                reqdfields.add((String)model.getValueAt(i, 0));
+            for (int i = 0; i < fieldModel.getRowCount(); i++) {
+                reqdfields.add((String)fieldModel.getValueAt(i, 0));
             }
+            Geocoder coder = new Geocoder(reqdfields);
+            CSVReader reader = fieldModel.getCSVReader();
+            /*
+            List<String> headers = reader.getHeaders();
+            headers.add("lat");
+            headers.add("lng");
+            reader.setHeaders(headers);
+            * */
             
-            List<Map<String, Object>> document = new ArrayList<Map<String, Object>>();
             Map<String, Object> record;
             int i = 0;
- 
-            while ((record = reader.readRecord()) != null)   {
-                try {
-                    String address = "";
-                    for (String s : reqdfields) {
-                        address += record.get(s) + ", ";
-                    }
-                    address += "Belgium";
-                    float[] coords = coder.getLatLong(address);
-                    Thread.sleep(500);
-                    i++;
-                    String line = "";
-                    for (String s : model.getCSVReader().getHeaders()) {
-                        line += encapsulator + record.get(s) + encapsulator + delimiter;
-                    }
-                    String lat, lng;
-                    lat = (coords[0] == Float.NaN) ? "" : Float.toString(coords[0]);
-                    lng = (coords[1] == Float.NaN) ? "" : Float.toString(coords[1]);
-                    line += encapsulator + lat + encapsulator + delimiter;
-                    line += encapsulator + lng + encapsulator + delimiter;
-                    line += "\n";
-                    output.write(line);
-                } catch (IOException ex) {
-                    Logger.getLogger(POIMapper.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (CSVColumnCountException ccex) {
-                    Logger.getLogger(POIMapper.class.getName()).log(Level.SEVERE, "Column Count Error on line " + i + ". Skipping record.", ccex);
-                }
+            
+
+            
+            // Detect destination File Type
+            if (lastDestinationFilter == new CitadelJSONFilter().getDescription()) {
+                // Citadel JSON Format
+                POIMapper mapper = new POIMapper(reader);            
+                mapper.map(coder);
+                Map<String, Object> document = mapper.getDocument();
+                System.out.println("JSON mapped");
+                DataWriter output = new JSONWriter(destinationFile);
+                output.write(document, destinationFile);
+            } else {
+                // Ordinary CSV - Warning! highly inefficient!
+                CSVMapper mapper = new CSVMapper(reader);            
+                mapper.map(coder);
+                System.out.println("CSV mapped");
+                Map<String, Object> document = mapper.getDocument();
+                System.out.print("size of resulting doc: " + document.keySet().size());
+                DataWriter output = new  CSVFileWriter(destinationFile, encapsulator, delimiter);
+                output.write(document, destinationFile);
             }
             
-            output.flush();
             
             Object[] options = {"OK"};
             int n = JOptionPane.showOptionDialog(this,
@@ -368,11 +364,28 @@ public class GeocoderFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_closeButtonActionPerformed
 
     private void destinationSelectButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_destinationSelectButtonActionPerformed
+        fc.resetChoosableFileFilters();
+        fc.addChoosableFileFilter(new CSVFilter());
+        fc.addChoosableFileFilter(new CitadelJSONFilter());
+        /*
+        FileFilter[] filters = fc.getChoosableFileFilters();
+        int i = 0;
+        for (FileFilter filter : filters) {
+            if (filter instanceof CitadelJSONFilter) {
+                continue;
+            }
+            i++;
+        }
+        if (i >= filters.length) {
+            fc.addChoosableFileFilter(new CitadelJSONFilter());
+        }
+       */
         int returnVal = fc.showSaveDialog(GeocoderFrame.this);
 
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             File file = fc.getSelectedFile();
             destinationText.setText(file.getAbsolutePath());
+            lastDestinationFilter = fc.getFileFilter().getDescription();
         } else {
             System.out.println("cancelled");
         }

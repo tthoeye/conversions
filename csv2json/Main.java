@@ -4,6 +4,7 @@
  */ 
 
 import io.CSVReader;
+import io.Geocoder;
 import io.JSONWriter;
 import io.UitDatabankReader;
 import io.VisitGentReader;
@@ -12,6 +13,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -24,25 +26,7 @@ import org.xml.sax.SAXException;
 
 public class Main {
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) {
-        System.out.println("Running...");
-        Main main = new Main();
-        if (args.length < 1) {
-            main.buildUI();
-            //System.out.println("Usage: java -jar CSV2JSON.jar inpput.csv output.json");
-        }
-        
-        String filename = args[0];
-        String output = args[1];
-        
-        //main.parseCSV(filename, output);
-        //main.parseCSV("POI_issy.csv", "POI_issy.json");
-        //main.decodeVisitGent(filename, output);
-        
-    }
+   
     
     public void buildUI() {
          try {
@@ -73,10 +57,12 @@ public class Main {
             FileReader input = new FileReader(filename);
             CSVReader reader = new CSVReader(input);
             POIMapper mapper = new POIMapper(reader);            
-            mapper.map();
+            Geocoder coder = new Geocoder(new ArrayList<String>());
+            mapper.map(coder);
             Map<String, Object> document = mapper.getDocument();
-            JSONWriter writer = new JSONWriter();
             File outputfile = new File(output);
+            JSONWriter writer = new JSONWriter(outputfile);
+            
             writer.write(document, outputfile);          
         } catch (FileNotFoundException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, ex.getMessage(), ex);
@@ -91,11 +77,13 @@ public class Main {
             // Initialize source
             File inputfile = new File(input);
             VisitGentReader vgr = new VisitGentReader(inputfile);
-            POIMapper mapper = new POIMapper(vgr);            
-            mapper.map();
+            POIMapper mapper = new POIMapper(vgr);   
+            Geocoder coder = new Geocoder(new ArrayList<String>());
+            mapper.map(coder);
             Map<String, Object> document = mapper.getDocument();
-            JSONWriter writer = new JSONWriter();
             File outputfile = new File(output);
+            JSONWriter writer = new JSONWriter(outputfile);
+            //File outputfile = new File(output);
             writer.write(document, outputfile);          
         } catch (FileNotFoundException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, ex.getMessage(), ex);
@@ -111,11 +99,13 @@ public class Main {
         try {
             // Initialize source
             UitDatabankReader udbr = new UitDatabankReader();
-            POIMapper mapper = new POIMapper(udbr);            
-            mapper.map();
+            POIMapper mapper = new POIMapper(udbr); 
+            Geocoder coder = new Geocoder(new ArrayList<String>());
+            mapper.map(coder);
             Map<String, Object> document = mapper.getDocument();
-            JSONWriter writer = new JSONWriter();
+            
             File outputfile = new File(output);
+            JSONWriter writer = new JSONWriter(outputfile);
             writer.write(document, outputfile);          
         } catch (FileNotFoundException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, ex.getMessage(), ex);
@@ -124,5 +114,27 @@ public class Main {
         }        
         System.out.println("Done...");
     }
-            
+
+    /**
+     * Main
+     * 
+     * @param args the command line arguments
+     */
+    public static void main(String[] args) {
+        System.out.println("Running...");
+        Main main = new Main();
+        if (args.length < 1) {
+            main.buildUI();
+            //System.out.println("Usage: java -jar CSV2JSON.jar inpput.csv output.json");
+        }
+        
+        //String filename = args[0];
+        //String output = args[1];
+        
+        //main.parseCSV(filename, output);
+        //main.parseCSV("POI_issy.csv", "POI_issy.json");
+        //main.decodeVisitGent(filename, output);
+        
+    }
+  
 }

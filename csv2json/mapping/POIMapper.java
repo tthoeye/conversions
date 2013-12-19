@@ -5,6 +5,7 @@
 package mapping;
 
 import exceptions.CSVColumnCountException;
+import io.Geocoder;
 import io.RecordReader;
 import java.io.IOException;
 import java.text.DateFormat;
@@ -17,18 +18,11 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class POIMapper {
+public class POIMapper extends AbstractMapper {
+
     
-    private RecordReader rrdr;
-    private Map<String, Object> document;
-    
-    public POIMapper(RecordReader rdr) {
-        this.rrdr = rdr;
-        this.document = new HashMap<String, Object>();
-    } 
-    
-    public void clear() {
-        getDocument().clear();
+    public POIMapper(RecordReader rrdr) {
+        super(rrdr);
     }
     
     /**
@@ -36,9 +30,10 @@ public class POIMapper {
      * that complies with the JSON format expected by the Citadel templates.
      * 
      * This structure is intentionally kept as abstract as possible (Map<String, Object>)
-     * to accomodate for serialization to other formats then JSON in the future.
+     * to accommodate for serialization to other formats then JSON in the future.
      */
-    public void map() {
+    public void map(Geocoder coder) {
+        System.out.println("MAPPING POI");
         clear();
         Map<String, Object> dataset = new HashMap<String, Object>();
         // Add Individuals POIs
@@ -47,7 +42,8 @@ public class POIMapper {
         int i = 0;
         try {
             while ((record = rrdr.readRecord()) != null)   {
-                Map<String, Object> poi = readPOI(record);
+                System.out.println("Reading record");
+                Map<String, Object> poi = readPOI(record, coder);
                 pois.add(poi);
                 i++;
             //"poi": [
@@ -62,13 +58,13 @@ public class POIMapper {
         // Add Dataset Metadata
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mmZ");
         String now = df.format(new Date());
-        dataset.put("id", "http://www.example.com/");
+        dataset.put("id", "http://www.gentmatinees.be/");
         dataset.put("updated", now);
         dataset.put("created", now);
-        dataset.put("lang", "fr-FR");
+        dataset.put("lang", "nl-NL");
         Map<String, String> author = new HashMap<String, String>();
-        author.put("id", "http://www.ville-issy.fr/");
-        author.put("value", "City of Athens");
+        author.put("id", "http://www.gent.be/");
+        author.put("value", "Thimo Thoeye for Stad Gent");
         dataset.put("author", author);
         dataset.put("license", new HashMap<String, String>());
         Map<String, String> link = new HashMap<String, String>();
@@ -79,19 +75,7 @@ public class POIMapper {
          
     }
 
-    /**
-     * @return the document
-     */
-    public Map<String, Object> getDocument() {
-        return document;
-    }
-
-    /**
-     * @param document the document to set
-     */
-    public void setDocument(Map<String, Object> document) {
-        this.document = document;
-    }
+    
 
     /**
      * This method will interpret a given record (a map) as a POI.
@@ -119,7 +103,7 @@ public class POIMapper {
      * @param record
      * @return 
      */
-    private Map<String, Object> readPOI(Map<String, Object> record) {
+    private Map<String, Object> readPOI(Map<String, Object> record, Geocoder coder) {
         
         // List used column names 
         String[] reservedcolumns = {
@@ -143,6 +127,8 @@ public class POIMapper {
         // General POI description
         poi.put("id", record.get("id"));
         poi.put("title", record.get("title"));
+        String title = (String)record.get("title");
+        System.out.println("MAPPING: " + title);
         // Description when available
         Object description = (record.get("description") != null) ? record.get("description") : "";
         poi.put("description", description);
@@ -157,8 +143,13 @@ public class POIMapper {
         Map<String, Object> address = new HashMap<String, Object>();
         // Configure coordinates
         pos.put("srsName", "http://www.opengis.net/def/crs/EPSG/0/4326");
-        String latitude = (String) record.get("latitude");
-        String longitude = (String) record.get("longitude");
+        
+        if (coder != null) {
+            System.out.println("Geocoding");
+            record = coder.geocodeRecord(record);
+        }
+        String latitude = String.valueOf(record.get("lat"));
+        String longitude = String.valueOf(record.get("lng"));
         
         if (latitude != null && latitude.contains(",")) {
             latitude = latitude.replaceAll(",", ".");
@@ -246,6 +237,7 @@ public class POIMapper {
             attributes.add(email);
         }
         poi.put("attribute", attributes);
+        System.out.println(poi.size());
         return poi;
     }
     
