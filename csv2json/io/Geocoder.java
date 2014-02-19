@@ -53,7 +53,7 @@ public class Geocoder {
         for (String s : reqdfields) {
             address += record.get(s) + ", ";
         }
-        address += "Belgium";
+        address += "Gent, Belgium";
         System.out.println("Geocoding " + address);
         float[] coords = getLatLong(address);
         Thread.sleep(500);

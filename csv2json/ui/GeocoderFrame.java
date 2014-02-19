@@ -329,7 +329,7 @@ public class GeocoderFrame extends javax.swing.JFrame {
                 System.out.println("CSV mapped");
                 Map<String, Object> document = mapper.getDocument();
                 System.out.print("size of resulting doc: " + document.keySet().size());
-                DataWriter output = new  CSVFileWriter(destinationFile, encapsulator, delimiter);
+                DataWriter output = new  CSVFileWriter(destinationFile, "\"", ";");
                 output.write(document, destinationFile);
             }
             

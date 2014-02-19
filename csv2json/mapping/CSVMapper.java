@@ -27,6 +27,21 @@ public class CSVMapper extends AbstractMapper {
             int i = 0;
             Map<String, Object> record;
             while((record = rrdr.readRecord()) != null) {
+                if (coder != null) {
+                    System.out.println("Geocoding");
+                    record = coder.geocodeRecord(record);
+
+                    String latitude = String.valueOf(record.get("lat"));
+                    String longitude = String.valueOf(record.get("lng"));
+
+                    if (latitude != null && latitude.contains(",")) {
+                        //latitude = latitude.replaceAll(",", ".");
+                    }
+                    if (longitude != null && longitude.contains(",")) {
+                        //longitude = longitude.replaceAll(",",".");
+                    }
+
+                }
                 document.put(String.valueOf(i) , record);
                 i++;
             }

@@ -30,7 +30,7 @@ public class CSVFileWriter extends DataWriter {
     public CSVFileWriter(File file, String encapsulator, String delimiter) throws IOException {
         super(file);
         this.encapsulator = encapsulator;  
-        this.delimiter = encapsulator;  
+        this.delimiter = delimiter;  
         this.headerWritten = false;
         this.writeHeader = true;
     }
